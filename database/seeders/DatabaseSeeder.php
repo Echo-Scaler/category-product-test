@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        // Create categories using factory - Category::factory() method ကိုအသုံးပြုပြီး ဖန်တီးမယ်
+        Category::factory(10)->create();
+
         // Create each category individually - Category::create() method ကိုအသုံးပြုပြီး တစ်ခုချင်းစီဖန်တီးမယ်
         // Category::create([
         //     'name' => 'Home Appliances',
@@ -35,11 +38,11 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         // Create multiple categories at once - Category::insert() method ကိုအသုံးပြုပြီး တစ်ပြိုင်တည်းဖန်တီးမယ်
-        Category::insert([
-            ['name' => 'Home ', 'description' => 'Appliances for home use'],
-            ['name' => 'Bird', 'description' => 'Electronic devices and gadgets'],
-            ['name' => 'Keyboards', 'description' => 'All kinds of books'],
-        ]);
+        // Category::insert([
+        //     ['name' => 'Home ', 'description' => 'Appliances for home use'],
+        //     ['name' => 'Bird', 'description' => 'Electronic devices and gadgets'],
+        //     ['name' => 'Keyboards', 'description' => 'All kinds of books'],
+        // ]);
 
     }
 }
