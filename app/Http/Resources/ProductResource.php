@@ -20,9 +20,11 @@ class ProductResource extends JsonResource
             'description' => $this->description,
             'price' => $this->price,
             'image_url' => $this->image_url,
-            'category' => new CategoryResource($this->whenLoaded('category')),
+            'category_name' => $this->category->name, // only name ကိုပဲပြမယ်
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
     }
 }
+
+// 'category' => new CategoryResource($this->whenLoaded('category')), //obj
