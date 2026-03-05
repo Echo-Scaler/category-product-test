@@ -19,7 +19,7 @@ class CategoryFactory extends Factory
         // create factory way - php artisan make:factory CategoryFactory
         return [
             // name must be unique, so we use unique() method to generate unique name
-            'name' => $this->faker->unique()->word(),
+            'name' => $this->faker->word,
             'description' => $this->faker->sentence(),
             'created_at' => now(),
             'updated_at' => now(),
