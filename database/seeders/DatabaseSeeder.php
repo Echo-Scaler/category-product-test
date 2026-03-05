@@ -46,5 +46,16 @@ class DatabaseSeeder extends Seeder
         //     ['name' => 'Keyboards', 'description' => 'All kinds of books'],
         // ]);
 
+        // if want to create separate seeders
+        // Product::factory()->count(50)->create();
+        // php artisan make:seeder CategorySeeder
+        //
+        // php artisan make:seeder ProductSeeder
+        // $this->call([
+        //     CategorySeeder::class,
+        //     ProductSeeder::class,
+        // ]);
+        // then run php artisan db:seed to seed the database
+
     }
 }
