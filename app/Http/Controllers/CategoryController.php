@@ -7,16 +7,23 @@ use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Exception;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $categories = Category::all();
+            //  return $request['search'];
+            // $categories = Category::all();
+            $query = Category::query();
+            if ($request->has('search')) {
+                $query->where('name', 'like', '%'.$request['search'].'%');
+            }
+            $categories = $query->get();
 
             return response()->json([
                 'message' => 'Categories retrieved successfully',
@@ -28,6 +35,8 @@ class CategoryController extends Controller
             ], 500);
         }
     }
+    // path_to_route: api/categories/{id}
+    // path_to_query: api/categories/query?q=search_term
 
     /**
      * Store a newly created resource in storage.
