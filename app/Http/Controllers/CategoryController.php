@@ -20,16 +20,34 @@ class CategoryController extends Controller
             //  return $request['search'];
             // $categories = Category::all();
             $query = Category::query();
+            // if ($request->has('search')) {. //only search if search query is provided
+            //     $query->where('name', 'like', '%'.$request['search'].'%'); // search by name
+            // }
+
+            // search by name or description (can use multiple search)
             if ($request->has('search')) {
-                $query->where('name', 'like', '%'.$request['search'].'%'); // search by name
+                $searchTerm = $request['search'];
+                $query->where(function ($q) use ($searchTerm) {
+                    $q->where('name', 'like', '%'.$searchTerm.'%')
+                        ->orWhere('description', 'like', '%'.$searchTerm.'%');
+                });
             }
+
             $perPage = $request->get('per_page', 10);
-            $categories = $query->paginate($perPage);
+            $categories = $query->paginate($perPage); // paginate results per_page=5&page=2
+
             // $categories = $query->get();
 
             return response()->json([
                 'message' => 'Categories retrieved successfully',
                 'data' => CategoryResource::collection($categories),
+                'meta' => [
+                    'current_page' => $categories->currentPage(),
+                    'last_page' => $categories->lastPage(),
+                    'per_page' => $categories->perPage(),
+                    'total' => $categories->total(),
+                    // remember to add pagination links in the frontend
+                ],
             ], 200);
         } catch (Exception $e) {
             return response()->json([
