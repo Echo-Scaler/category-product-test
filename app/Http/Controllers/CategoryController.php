@@ -21,9 +21,11 @@ class CategoryController extends Controller
             // $categories = Category::all();
             $query = Category::query();
             if ($request->has('search')) {
-                $query->where('name', 'like', '%'.$request['search'].'%');
+                $query->where('name', 'like', '%'.$request['search'].'%'); // search by name
             }
-            $categories = $query->get();
+            $perPage = $request->get('per_page', 10);
+            $categories = $query->paginate($perPage);
+            // $categories = $query->get();
 
             return response()->json([
                 'message' => 'Categories retrieved successfully',
