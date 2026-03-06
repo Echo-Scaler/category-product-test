@@ -20,7 +20,7 @@ class ProductResource extends JsonResource
             'description' => $this->description,
             'price' => $this->price,
             'image_url' => $this->image_url,
-            'category_name' => $this->category->name, // only name ကိုပဲပြမယ်
+            'category_name' => $this->category?->name, // category မရှိလည်း error မတက်အောင် null-safe
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
