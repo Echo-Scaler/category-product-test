@@ -65,7 +65,17 @@ class ProductController extends Controller
     public function store(StoreRequest $request)
     {
         try {
-            $product = Product::create($request->validated());
+            // $product = Product::create($request->validated());
+            $data = $request->validated();
+            if ($request->hasFile('image_url')) {
+                // php artisan storage:link => public/storage ကို storage/app/public နဲ့ link လုပ်ပေးတယ်
+                // storeage/app/public/products/filename.jpg
+                $path = $request->file('image_url')->store('products', 'public');
+                // if want to save under private
+                // $path = $request->file('image_url')->store('products'); // default is private
+                $data['image_url'] = $path; // save path to database
+            }
+            $product = Product::create($data);
             $product->load('category'); // safe for N+1 query problem
 
             return response()->json([
