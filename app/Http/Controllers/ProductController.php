@@ -8,6 +8,7 @@ use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -135,6 +136,12 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         try {
+            if ($product->image_url) {
+                // delete old image from storage
+                Storage::disk('public')->delete($product->image_url); // for public disk
+
+                // Storage::delete($product->image_url); // for private disk
+            }
             $product->delete();
 
             return response()->json([
