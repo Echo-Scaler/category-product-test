@@ -17,7 +17,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Product::query()->with('category');  // eager loading,N+1 problem ကိုဖြေရှင်းပေးတယ်
+            $query = Product::query()->with('category');  // eager loading,N+1 problem ကိုဖြေရှင်းပေးတယ် => "with" use relationships to avoid N+1 problem
 
             // $products = Product::all();  lazy loading
             // foreach ($products as $product) {
