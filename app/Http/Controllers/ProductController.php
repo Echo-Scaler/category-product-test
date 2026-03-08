@@ -116,7 +116,22 @@ class ProductController extends Controller
     public function update(UpdateRequest $request, Product $product)
     {
         try {
-            $product->update($request->validated());
+            $data = $request->validated();
+
+            if ($request->hasFile('image_url')) {
+                $newImagePath = $request->file('image_url')->store('products', 'public');
+
+                if ($product->image_url) {
+                    $oldImagePath = $this->normalizePublicImagePath($product->image_url);
+                    if ($oldImagePath) {
+                        Storage::disk('public')->delete($oldImagePath);
+                    }
+                }
+
+                $data['image_url'] = $newImagePath;
+            }
+
+            $product->update($data);
             $product->load('category');
 
             return response()->json([
@@ -137,8 +152,11 @@ class ProductController extends Controller
     {
         try {
             if ($product->image_url) {
-                // delete old image from storage
-                Storage::disk('public')->delete($product->image_url); // for public disk
+                // Normalize DB value to public disk path (e.g. products/xxx.jpg)
+                $imagePath = $this->normalizePublicImagePath($product->image_url);
+                if ($imagePath) {
+                    Storage::disk('public')->delete($imagePath); // for public disk
+                }
 
                 // Storage::delete($product->image_url); // for private disk
             }
@@ -152,5 +170,25 @@ class ProductController extends Controller
                 'message' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    private function normalizePublicImagePath(?string $imageUrl): ?string
+    {
+        if (! $imageUrl) {
+            return null;
+        }
+
+        // Supports:
+        // - products/file.jpg
+        // - /storage/products/file.jpg
+        // - http://domain/storage/products/file.jpg
+        $path = parse_url($imageUrl, PHP_URL_PATH) ?? $imageUrl;
+        $path = ltrim($path, '/');
+
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, 8); // remove `storage/`
+        }
+
+        return str_starts_with($path, 'products/') ? $path : null;
     }
 }
