@@ -6,6 +6,7 @@ use App\Http\Requests\Product\StoreRequest;
 use App\Http\Requests\Product\UpdateRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
+use App\Services\CloudinaryFileUploadService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -66,18 +67,20 @@ class ProductController extends Controller
     public function store(StoreRequest $request)
     {
         try {
-            // $product = Product::create($request->validated());
             $data = $request->validated();
+            // Handle file upload to public disk , storage/app/public/products/xxx.jpg
             if ($request->hasFile('image_url')) {
-                // php artisan storage:link => public/storage ကို storage/app/public နဲ့ link လုပ်ပေးတယ်
-                // storeage/app/public/products/filename.jpg
-                $path = $request->file('image_url')->store('products', 'public');
-                // if want to save under private
-                // $path = $request->file('image_url')->store('products'); // default is private
-                $data['image_url'] = $path; // save path to database
+                // formal way to upload file to public disk
+                // $path = $request->file('image_url')->store('products', 'public');
+                // $data['image_url'] = $path;
+
+                // cloudinary upload
+                $cloudinaryService = new CloudinaryFileUploadService;
+                $data['image_url'] = $cloudinaryService->upload($request->file('image_url'), 'products');
             }
+
             $product = Product::create($data);
-            $product->load('category'); // safe for N+1 query problem
+            $product->load('category');
 
             return response()->json([
                 'message' => 'Product created successfully',
@@ -113,22 +116,24 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateRequest $request, Product $product)
+    public function update(UpdateRequest $request, Product $product, CloudinaryFileUploadService $cloudinaryFileUploadService)
     {
         try {
             $data = $request->validated();
 
             if ($request->hasFile('image_url')) {
-                $newImagePath = $request->file('image_url')->store('products', 'public');
+                $newImageUrl = $cloudinaryFileUploadService->upload($request->file('image_url'), 'products');
 
                 if ($product->image_url) {
+                    $cloudinaryFileUploadService->deleteByUrl($product->image_url);
+
                     $oldImagePath = $this->normalizePublicImagePath($product->image_url);
                     if ($oldImagePath) {
                         Storage::disk('public')->delete($oldImagePath);
                     }
                 }
 
-                $data['image_url'] = $newImagePath;
+                $data['image_url'] = $newImageUrl;
             }
 
             $product->update($data);
@@ -148,10 +153,12 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy(Product $product, CloudinaryFileUploadService $cloudinaryFileUploadService)
     {
         try {
             if ($product->image_url) {
+                $cloudinaryFileUploadService->deleteByUrl($product->image_url);
+
                 // Normalize DB value to public disk path (e.g. products/xxx.jpg)
                 $imagePath = $this->normalizePublicImagePath($product->image_url);
                 if ($imagePath) {
