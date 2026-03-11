@@ -29,7 +29,7 @@ class ProductResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'price' => $this->price,
-            'image_url' => $this->image_url, // image url ကို absolute url ပြောင်းပေးတယ် to call browser by https
+            'image_url' => $this->image_url, // image url ကို absolute url ပြောင်းပေးတယ် to call browser by https => upload in cloud - use response in service
             'category_name' => $this->category?->name, // category မရှိလည်း error မတက်အောင် null-safe
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

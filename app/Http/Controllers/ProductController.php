@@ -66,6 +66,7 @@ class ProductController extends Controller
      */
     public function store(StoreRequest $request)
     {
+        // dd($request->all());
         try {
             $data = $request->validated();
             // Handle file upload to public disk , storage/app/public/products/xxx.jpg
@@ -74,7 +75,7 @@ class ProductController extends Controller
                 // $path = $request->file('image_url')->store('products', 'public');
                 // $data['image_url'] = $path;
 
-                // cloudinary upload
+                // cloudinary upload (instance create)
                 $cloudinaryService = new CloudinaryFileUploadService;
                 $data['image_url'] = $cloudinaryService->upload($request->file('image_url'), 'products');
             }

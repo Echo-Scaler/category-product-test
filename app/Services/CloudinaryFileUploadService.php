@@ -9,6 +9,8 @@ use RuntimeException;
 
 class CloudinaryFileUploadService
 {
+    private $uploadApi;
+
     public function upload(UploadedFile $file, string $folder = 'uploads'): string
     {
         // Configure Cloudinary client => that is given in .env
