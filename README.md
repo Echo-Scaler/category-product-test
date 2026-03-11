@@ -7,53 +7,53 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+## Project Functions
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<details>
+<summary>Category API</summary>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- List categories with search and pagination: `GET /api/categories?search=term&per_page=10`
+- Create category: `POST /api/categories`
+- Show category: `GET /api/categories/{id}`
+- Update category: `PUT /api/categories/{id}`
+- Delete category: `DELETE /api/categories/{id}`
+</details>
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+<details>
+<summary>Product API</summary>
 
-## Learning Laravel
+- List products with search, pagination, and category relation: `GET /api/products?search=term&per_page=10`
+- Create product with image upload: `POST /api/products`
+- Show product with category: `GET /api/products/{id}`
+- Update product (replace image if provided): `PUT /api/products/{id}`
+- Delete product (removes Cloudinary image if present): `DELETE /api/products/{id}`
+</details>
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+<details>
+<summary>Cloudinary Image Handling</summary>
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- Upload images to Cloudinary on create/update
+- Delete old Cloudinary image on update
+- Delete Cloudinary image on product deletion
+</details>
 
-## Laravel Sponsors
+<details>
+<summary>Cloudinary Config</summary>
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- Service uses Cloudinary SDK with `.env` keys: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+- Cloudinary disk config (optional) lives in `config/filesystems.php` under `disks.cloudinary`
+- `CLOUDINARY_URL` and related disk envs are present if you choose filesystem disk usage
+</details>
 
-### Premium Partners
+<details>
+<summary>Cloudinary Service Flow</summary>
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- Upload flow
+  - Controller `store()` and `update()` call `CloudinaryFileUploadService::upload($file, 'products')`
+  - Service builds `UploadApi` client from `.env` values
+  - Upload returns `secure_url`, saved into `products.image_url`
+- Delete flow by URL
+  - Controller `update()` and `destroy()` call `deleteByUrl($product->image_url)`
+  - Service extracts `public_id` from the URL path after `/upload/`
+  - Service calls `destroy($publicId, ['resource_type' => 'image'])`
+</details>

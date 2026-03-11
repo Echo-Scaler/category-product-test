@@ -162,6 +162,8 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    // Controller နဲ့ Service ရဲ့ method name ကို တူအောင်ထား (deleteByUrl သို့မဟုတ် delete တစ်ခုတည်း)
+    // Service ထဲမှာ method ရှိ/မရှိကို confirm ပြီးမှ ခေါ်
     public function destroy(string $id)
     {
         try {
