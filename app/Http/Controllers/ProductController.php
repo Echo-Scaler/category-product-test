@@ -135,11 +135,13 @@ class ProductController extends Controller
             //     $path = $request->file('image_url')->store('products', 'public');
             //     $data['image_url'] = $path;
             // }
+            
             // update file in cloudinary
             if ($request->hasFile('image_url')) {
                 $cloudinaryService = new CloudinaryFileUploadService();
                 // if exist old image -> delete
                 if ($product->image_url) {
+                     //use smae name method
                     $cloudinaryService->deleteByUrl($product->image_url);
                 }
                 $data['image_url'] = $cloudinaryService->upload($request->file('image_url'), 'products');
