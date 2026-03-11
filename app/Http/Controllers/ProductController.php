@@ -117,28 +117,34 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateRequest $request, Product $product, CloudinaryFileUploadService $cloudinaryFileUploadService)
+    public function update(UpdateRequest $request, string $id)
     {
         try {
-            $data = $request->validated();
-
-            if ($request->hasFile('image_url')) {
-                $newImageUrl = $cloudinaryFileUploadService->upload($request->file('image_url'), 'products');
-
-                if ($product->image_url) {
-                    $cloudinaryFileUploadService->deleteByUrl($product->image_url);
-
-                    $oldImagePath = $this->normalizePublicImagePath($product->image_url);
-                    if ($oldImagePath) {
-                        Storage::disk('public')->delete($oldImagePath);
-                    }
-                }
-
-                $data['image_url'] = $newImageUrl;
+            $product = Product::find($id);
+            if (! $product) {
+                return response()->json([
+                    'message' => 'Product not found',
+                ], 404);
             }
-
+            $data = $request->validated();
+            // normal way of update and delete old image
+            // if ($request->hasFile('image_url')) {
+            //     if ($product->image_url) {
+            //         Storage::disk('public')->delete($product->image_url);
+            //     }
+            //     $path = $request->file('image_url')->store('products', 'public');
+            //     $data['image_url'] = $path;
+            // }
+            // update file in cloudinary
+            if ($request->hasFile('image_url')) {
+                $cloudinaryService = new CloudinaryFileUploadService();
+                // if exist old image -> delete
+                if ($product->image_url) {
+                    $cloudinaryService->deleteByUrl($product->image_url);
+                }
+                $data['image_url'] = $cloudinaryService->upload($request->file('image_url'), 'products');
+            }
             $product->update($data);
-            $product->load('category');
 
             return response()->json([
                 'message' => 'Product updated successfully',
@@ -146,7 +152,7 @@ class ProductController extends Controller
             ], 200);
         } catch (Exception $e) {
             return response()->json([
-                'message' => $e->getMessage(),
+                'message' => 'Internal Server Error',
             ], 500);
         }
     }
@@ -163,6 +169,7 @@ class ProductController extends Controller
                     'message' => 'Product not found',
                 ], 404);
             }
+            // old way if old image is exist
             // if ($product->image_url){
             //  Storage::disk('public')->delete($product->image_url);
             //  }
@@ -170,7 +177,7 @@ class ProductController extends Controller
 
             // delete form cloudinary::
             if ($product->image_url) {
-                $cloudinaryService = new CloudinaryFileUploadService;
+                $cloudinaryService = new CloudinaryFileUploadService();
                 $cloudinaryService->deleteByUrl($product->image_url);
             }
             $product->delete();
