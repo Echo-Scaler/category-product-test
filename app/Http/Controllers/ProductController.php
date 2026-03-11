@@ -75,7 +75,7 @@ class ProductController extends Controller
                 // $path = $request->file('image_url')->store('products', 'public');
                 // $data['image_url'] = $path;
 
-                // cloudinary upload (instance create)
+                // cloudinary upload (instance create) code refractor
                 $cloudinaryService = new CloudinaryFileUploadService;
                 $data['image_url'] = $cloudinaryService->upload($request->file('image_url'), 'products');
             }
@@ -154,49 +154,34 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product, CloudinaryFileUploadService $cloudinaryFileUploadService)
+    public function destroy(string $id)
     {
         try {
+            $product = Product::find($id);
+            if (! $product) {
+                return response()->json([
+                    'message' => 'Product not found',
+                ], 404);
+            }
+            // if ($product->image_url){
+            //  Storage::disk('public')->delete($product->image_url);
+            //  }
+            // $product->delete();
+
+            // delete form cloudinary::
             if ($product->image_url) {
-                $cloudinaryFileUploadService->deleteByUrl($product->image_url);
-
-                // Normalize DB value to public disk path (e.g. products/xxx.jpg)
-                $imagePath = $this->normalizePublicImagePath($product->image_url);
-                if ($imagePath) {
-                    Storage::disk('public')->delete($imagePath); // for public disk
-                }
-
-                // Storage::delete($product->image_url); // for private disk
+                $cloudinaryService = new CloudinaryFileUploadService;
+                $cloudinaryService->deleteByUrl($product->image_url);
             }
             $product->delete();
 
             return response()->json([
-                'message' => 'Product deleted successfully',
+                'message' => 'Product delete successfully.',
             ], 200);
         } catch (Exception $e) {
             return response()->json([
-                'message' => $e->getMessage(),
+                'message' => 'Internal Server Error',
             ], 500);
         }
-    }
-
-    private function normalizePublicImagePath(?string $imageUrl): ?string
-    {
-        if (! $imageUrl) {
-            return null;
-        }
-
-        // Supports:
-        // - products/file.jpg
-        // - /storage/products/file.jpg
-        // - http://domain/storage/products/file.jpg
-        $path = parse_url($imageUrl, PHP_URL_PATH) ?? $imageUrl;
-        $path = ltrim($path, '/');
-
-        if (str_starts_with($path, 'storage/')) {
-            $path = substr($path, 8); // remove `storage/`
-        }
-
-        return str_starts_with($path, 'products/') ? $path : null;
     }
 }
